@@ -19,7 +19,7 @@ using namespace GarrysMod::Lua;
 #include "engineclient.h"
 #include "inetchannel.h"
 #include "clientstate.h"
-
+#include "globalvars.h"
 #include "createmovehook.h"
 #include "doimpacthook.h"
 #include "framestagenotify.h"
@@ -635,7 +635,21 @@ LUA_FUNCTION(SetViewAngles) {
 	return 0;
 }
 
+/*
+	Global vars
+*/
 
+LUA_FUNCTION(SetCurTime) {
+	LUA->CheckNumber(1);
+	interfaces::globalVars->curtime = LUA->GetNumber(1);
+	return 0;
+}
+
+LUA_FUNCTION(SetFrameTime) {
+	LUA->CheckNumber(1);
+	interfaces::globalVars->frametime = LUA->GetNumber(1);
+	return 0;
+}
 
 /*
 	Entity
@@ -843,6 +857,10 @@ GMOD_MODULE_OPEN() {
 	// Spoofed convars 
 	pushAPIFunction("SpoofConVar",				SpoofConVar);
 	pushAPIFunction("SpoofedConVarSetNumber",	SpoofedConVarSetNumber);
+
+	//  Global Vars 
+	pushAPIFunction("SetFrameTime",				SetFrameTime);
+	pushAPIFunction("SetCurTime",				SetCurTime);
 
 	// Convars
 	pushAPIFunction("ConVarSetNumber",			ConVarSetNumber);
