@@ -120,15 +120,19 @@ public:
 		return vmt::call<void>((void*)this, 42, filename, transferID);
 	}
 
-	void RequestFile_OLD(const char* filename, unsigned int transferID) noexcept {
-		return vmt::call<void>((void*)this, 44, filename, transferID);
-	}
-
 	unsigned int RequestFile(const char* filename) noexcept {
 		return vmt::call<unsigned int>((void*)this, 65, filename);
 	}
 
+	VPROXY(SetDataRate, 28, float, (float));
+	VPROXY(SetChallengeNr, 34, unsigned int, (unsigned int));
+	VPROXY(SetCompressionMode, 62, void, (bool));
+	VPROXY(SetInterpolationAmount, 67, void, (float));
+	VPROXY(SetRemoteFramerate, 68, void, (float, float));
+	VPROXY(SetMaxRoutablePayloadSize, 69, void, (int));
 	VPROXY(SetChoked, 45, void, (void));
+	VPROXY(Shutdown, 37, char const*, (char const*));
+	VPROXY(SetTimeout, 32, float, (float));
 	VPROXY(SendDatagram, 46, int, (bf_write* data), data);
 	  
 public:
@@ -250,10 +254,11 @@ public:
 		m_bReliable = false;
 	}
 
+	/*
 	void SetupVMT() {
 		static void** vmt = reinterpret_cast<void**>(getAbsAddr(findPattern("engine.dll", "FF C0 03 F8 48 89 B4 24 E8 10 00 00 48 8D 05") + 12));
 		*reinterpret_cast<void***>(this) = vmt;
-	}
+	}*/
 
 	int			m_nBackupCommands;
 	int			m_nNewCommands;

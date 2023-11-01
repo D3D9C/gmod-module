@@ -25,6 +25,14 @@ public:
 
 	VPROXY(CreateMove, 21, void, (int sequence_number, float input_sample_frametime, bool active), sequence_number, input_sample_frametime, active);
 	VPROXY(View_Render, 26, void, (void*));
+	
+	
+	
+	
+	
+	
+	
+	
 	// VPROXY(RenderView, 27, void, (CViewSetup view, int nClearFlags, int whatToDraw), view, nClearFlags, whatToDraw);
 
 

@@ -504,7 +504,14 @@ namespace detour {
 		Send net msg ???
 	*/
 
-	/*
+	#define MAX_CMD_BUFFER 4000
+
+	#define NUM_NEW_COMMAND_BITS		4
+	#define MAX_NEW_COMMANDS			((1 << NUM_NEW_COMMAND_BITS) - 1)
+
+	#define NUM_BACKUP_COMMAND_BITS		3
+	#define MAX_BACKUP_COMMANDS			((1 << NUM_BACKUP_COMMAND_BITS) - 1)
+
 	using SendNetMsgFn = bool(__fastcall*)(INetChannel* self, INetMessage& msg, bool bForceReliable, bool bVoice);
 	SendNetMsgFn SendNetMsgOriginal = nullptr;
 
@@ -514,8 +521,8 @@ namespace detour {
 		int nextCommandNr = interfaces::clientState->lastoutgoingcommand + interfaces::clientState->chokedcommands + 1;
 
 		CLC_Move moveMsg;
-		moveMsg.SetupVMT();
-
+		//moveMsg.SetupVMT();
+		 
 		moveMsg.m_DataOut.StartWriting(data, sizeof(data));
 
 		// How many real new commands have queued up
@@ -572,23 +579,14 @@ namespace detour {
 			lua->Pop(2);
 		}
 
+		/*
 		if (strcmp(msgName, "clc_Move") == 0) {
-
-			if (globals::bSendPacket) {
-				SendMove();
-			}
-			else
-			{
-				INetChannel* chan = reinterpret_cast<INetChannel*>(interfaces::engineClient->GetNetChannelInfo());
-				chan->SetChoked();
-				// interfaces::clientState->chokedcommands++;
-			}
-			return true;
-		}
+			SendMove();
+			return true; 
+		}*/
 
 		return SendNetMsgOriginal(self, msg, bForceReliable, bVoice);
 	}
-	*/
 
 
 	/*
@@ -695,15 +693,15 @@ namespace detour {
 
 		void* ShouldInterpolateT = vmt::get<void*>(localPlayer, 146);
 		void* UpdateClientAnimsT = vmt::get<void*>(localPlayer, 236);
-		//void* SendNetMsgT = vmt::get<void*>(interfaces::engineClient, 41);
+		void* SendNetMsgT = vmt::get<void*>(interfaces::engineClient->GetNetChannel(), 40);
 		void* EndSceneT = vmt::get<void*>(globals::device, 42);
-
+		 
 		if (MH_Initialize() == MH_OK)
 		{ 
 			// MH_CreateHook(EndSceneT,			(LPVOID)&EndSceneHookFunc,						(LPVOID*)&EndSceneOriginal);
 			MH_CreateHook(ShouldInterpolateT,	(LPVOID)&ShouldInterpolateHookFunc,				(LPVOID*)&ShouldInterpolateOriginal);
 			MH_CreateHook(UpdateClientAnimsT,	(LPVOID)&UpdateClientsideAnimationHookFunc,		(LPVOID*)&UpdateClientsideAnimationOriginal);
-			//MH_CreateHook(SendNetMsgT,			(LPVOID)&SendNetMsgHookFunc,					(LPVOID*)&SendNetMsgOriginal);
+			MH_CreateHook(SendNetMsgT,			(LPVOID)&SendNetMsgHookFunc,					(LPVOID*)&SendNetMsgOriginal);
 
 
 			MH_CreateHook((LPVOID)SeqChangePattern,		(LPVOID)&CheckForSequenceChangeHookFunc,		(LPVOID*)&SeqChangeOriginal);

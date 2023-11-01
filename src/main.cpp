@@ -28,13 +28,10 @@ using namespace GarrysMod::Lua;
 #include "viewrenderhook.h"
 #include "isplayingtimedemo.h"
 #include "sendnetmsg.h"
-
+#include "luashared.h"
 #include "detour.h"
-// #include "runstringex.h"
-
 #include "globals.h"
 #include "interfaces.h"
-
 #include "cliententitylist.h"
 #include "entity.h"
  
@@ -576,7 +573,7 @@ LUA_FUNCTION(RequestFile) {
 	netChan->RequestFile(str);
 
 	return 1;
-}
+} 
 
 LUA_FUNCTION(SendFile) {
 	LUA->CheckString(1);
@@ -610,10 +607,202 @@ LUA_FUNCTION(GetAvgLatency) {
 	return 1;
 }
 
+LUA_FUNCTION(GetNetName) {
+	LUA->PushString(interfaces::engineClient->GetNetChannel()->GetName());
+
+	return 1;
+}
+
+LUA_FUNCTION(GetNetAdress) {
+	LUA->PushString(interfaces::engineClient->GetNetChannel()->GetAddress());
+
+	return 1;
+}
+
+LUA_FUNCTION(GetNetTime) {
+	LUA->PushNumber(interfaces::engineClient->GetNetChannel()->GetTime());
+
+	return 1;
+}
+
+LUA_FUNCTION(GetNetTimeConnected) {
+	LUA->PushNumber(interfaces::engineClient->GetNetChannel()->GetTimeConnected());
+
+	return 1;
+}
+
+LUA_FUNCTION(GetNetBufferSize) {
+	LUA->PushNumber(interfaces::engineClient->GetNetChannel()->GetBufferSize());
+
+	return 1;
+}
+
+LUA_FUNCTION(GetNetDataRate) {
+	LUA->PushNumber(interfaces::engineClient->GetNetChannel()->GetDataRate());
+
+	return 1;
+}
+
+LUA_FUNCTION(GetIsLoopback) {
+	LUA->PushBool(interfaces::engineClient->GetNetChannel()->IsLoopback());
+
+	return 1;
+}
+
+LUA_FUNCTION(GetIsTimingOut) {
+	LUA->PushBool(interfaces::engineClient->GetNetChannel()->IsTimingOut());
+
+	return 1;
+}
+
+LUA_FUNCTION(GetAvgLoss) {
+	LUA->CheckNumber(1);
+
+	LUA->PushNumber(interfaces::engineClient->GetNetChannel()->GetAvgLoss(LUA->GetNumber(1)));
+
+	return 1;
+}
+
+LUA_FUNCTION(GetAvgChoke) {
+	LUA->CheckNumber(1);
+
+	LUA->PushNumber(interfaces::engineClient->GetNetChannel()->GetAvgChoke(LUA->GetNumber(1)));
+
+	return 1;
+}
+
+LUA_FUNCTION(GetAvgData) {
+	LUA->CheckNumber(1);
+
+	LUA->PushNumber(interfaces::engineClient->GetNetChannel()->GetAvgData(LUA->GetNumber(1)));
+
+	return 1;
+}
+
+LUA_FUNCTION(GetAvgPackets) {
+	LUA->CheckNumber(1);
+
+	LUA->PushNumber(interfaces::engineClient->GetNetChannel()->GetAvgPackets(LUA->GetNumber(1)));
+
+	return 1;
+}
+
+LUA_FUNCTION(GetTotalData) {
+	LUA->CheckNumber(1);
+
+	LUA->PushNumber(interfaces::engineClient->GetNetChannel()->GetTotalData(LUA->GetNumber(1)));
+
+	return 1;
+}
+
+LUA_FUNCTION(GetSequenceNrFlow) {
+	LUA->CheckNumber(1);
+
+	LUA->PushNumber(interfaces::engineClient->GetNetChannel()->GetSequenceNr(LUA->GetNumber(1)));
+
+	return 1;
+}
+
+LUA_FUNCTION(IsValidPacket) {
+	LUA->CheckNumber(1);
+	LUA->CheckNumber(2);
+
+	LUA->PushBool(interfaces::engineClient->GetNetChannel()->IsValidPacket(LUA->GetNumber(1), LUA->GetNumber(2)));
+
+	return 1;
+}
+
+LUA_FUNCTION(GetPacketTime) {
+	LUA->CheckNumber(1);
+	LUA->CheckNumber(2);
+
+	LUA->PushNumber(interfaces::engineClient->GetNetChannel()->GetPacketTime(LUA->GetNumber(1), LUA->GetNumber(2)));
+
+	return 1;
+}
+
+LUA_FUNCTION(GetPacketBytes) {
+	LUA->CheckNumber(1);
+	LUA->CheckNumber(2);
+	LUA->CheckNumber(3);
+
+	LUA->PushNumber(interfaces::engineClient->GetNetChannel()->GetPacketBytes(LUA->GetNumber(1), LUA->GetNumber(2), LUA->GetNumber(3)));
+
+	return 1;
+}
+
+LUA_FUNCTION(SetDataRate) {
+	LUA->CheckNumber(1);
+
+	interfaces::engineClient->GetNetChannel()->SetDataRate(LUA->GetNumber(1));
+
+	return 0;
+}
+
+LUA_FUNCTION(SetChallengeNr) {
+	LUA->CheckNumber(1);
+
+	interfaces::engineClient->GetNetChannel()->SetChallengeNr(LUA->GetNumber(1));
+
+	return 0;
+}
+
+LUA_FUNCTION(SetCompressionMode) {
+	LUA->CheckType(1, Type::Bool);
+
+	interfaces::engineClient->GetNetChannel()->SetCompressionMode(LUA->GetBool(1));
+
+	return 0;
+}
+
+LUA_FUNCTION(SetInterpolationAmount) {
+	LUA->CheckNumber(1);
+
+	interfaces::engineClient->GetNetChannel()->SetInterpolationAmount(LUA->GetNumber(1));
+
+	return 0;
+}
+
+LUA_FUNCTION(SetRemoteFramerate) {
+	LUA->CheckNumber(1);
+	LUA->CheckNumber(2);
+
+	interfaces::engineClient->GetNetChannel()->SetRemoteFramerate(LUA->GetNumber(1), LUA->GetNumber(2));
+
+	return 1;
+}
+
+LUA_FUNCTION(SetMaxRoutablePayloadSize) {
+	LUA->CheckNumber(1);
+
+	interfaces::engineClient->GetNetChannel()->SetMaxRoutablePayloadSize(LUA->GetNumber(1));
+
+	return 0;
+}
+
+LUA_FUNCTION(NetShutdownStr) {
+	LUA->CheckString(1);
+
+	interfaces::engineClient->GetNetChannel()->Shutdown(LUA->GetString(1));
+
+	return 0;
+}
+
+LUA_FUNCTION(SetTimeout) {
+	LUA->CheckNumber(1);
+
+	interfaces::engineClient->GetNetChannel()->SetTimeout(LUA->GetNumber(1));
+
+	return 0;
+}
+
 LUA_FUNCTION_GETSET(OutSequenceNr, Number, interfaces::engineClient->GetNetChannel()->m_nOutSequenceNr);
 LUA_FUNCTION_GETSET(InSequenceNr, Number, interfaces::engineClient->GetNetChannel()->m_nInSequenceNr);
 LUA_FUNCTION_GETSET(OutSequenceNrAck, Number, interfaces::engineClient->GetNetChannel()->m_nOutSequenceNrAck);
 LUA_FUNCTION_GETSET(NetChokedPackets, Number, interfaces::engineClient->GetNetChannel()->m_nChokedPackets);
+LUA_FUNCTION_GETSET(PacketDrop, Number, interfaces::engineClient->GetNetChannel()->m_PacketDrop);
+LUA_FUNCTION_GETSET(OutReliableState, Number, interfaces::engineClient->GetNetChannel()->m_nOutReliableState);
+LUA_FUNCTION_GETSET(InReliableState, Number, interfaces::engineClient->GetNetChannel()->m_nInReliableState);
 
 /*
 	Client state
@@ -629,11 +818,122 @@ LUA_FUNCTION_GETTER(GetPreviousTick, Number, interfaces::clientState->oldtickcou
 	Engine client
 */
 
-LUA_FUNCTION(SetViewAngles) {
+LUA_FUNCTION(EC_SetViewAngles) {
 	LUA->CheckType(1, Type::Angle);
 	interfaces::engineClient->SetViewAngles(LUA->GetAngle(1));
 	return 0;
 }
+
+LUA_FUNCTION(EC_ServerCmd) {
+	LUA->CheckString(1);
+	LUA->CheckType(2, Type::Bool);
+
+	interfaces::engineClient->ServerCmd(LUA->GetString(1), LUA->GetBool(2));
+	return 0;
+}
+
+LUA_FUNCTION(EC_ClientCmd) {
+	LUA->CheckString(1);
+
+	interfaces::engineClient->ClientCmd(LUA->GetString(1));
+	return 0;
+}
+
+LUA_FUNCTION(EC_ExClientCmd) {
+	LUA->CheckString(1);
+
+	interfaces::engineClient->ExecuteClientCmd(LUA->GetString(1));
+	return 0;
+}
+
+LUA_FUNCTION(EC_GCmdUnrestricted) {
+	LUA->CheckString(1);
+
+	interfaces::engineClient->GMOD_RawClientCmd_Unrestricted(LUA->GetString(1));
+	return 0;
+}
+
+LUA_FUNCTION(EC_UnrClientCmd) {
+	LUA->CheckString(1);
+
+	interfaces::engineClient->ClientCmd_Unrestricted(LUA->GetString(1));
+	return 0;
+}
+
+LUA_FUNCTION(EC_SetRestrictServerCommands) {
+	LUA->CheckType(1, Type::Bool);
+
+	interfaces::engineClient->SetRestrictServerCommands(LUA->GetBool(1));
+	return 0;
+}
+
+LUA_FUNCTION(EC_SetRestrictClientCommands) {
+	LUA->CheckType(1, Type::Bool);
+
+	interfaces::engineClient->SetRestrictClientCommands(LUA->GetBool(1));
+	return 0;
+}
+
+LUA_FUNCTION(EC_GetGameDirectory) {
+	LUA->PushString(interfaces::engineClient->GetGameDirectory());
+
+	return 1;
+}
+ 
+LUA_FUNCTION(EC_ChangeTeam) {
+	LUA->CheckString(1);
+
+	interfaces::engineClient->ChangeTeam(LUA->GetString(1));
+	return 0;
+}
+
+LUA_FUNCTION(EC_SetTimeManipulator) {
+	LUA->CheckNumber(1);
+
+	interfaces::engineClient->GMOD_SetTimeManipulator(LUA->GetNumber(1));
+	return 0;
+}
+
+LUA_FUNCTION(EC_GetLocalPlayer) {
+	LUA->PushNumber( interfaces::engineClient->GetLocalPlayer() );
+	return 1;
+}
+
+LUA_FUNCTION(EC_GetTime) {
+	LUA->PushNumber(interfaces::engineClient->EngineTime());
+	return 1;
+}
+
+LUA_FUNCTION(EC_GetLastTimeStamp) {
+	LUA->PushNumber(interfaces::engineClient->GetLastTimeStamp());
+	return 1;
+}
+
+LUA_FUNCTION(EC_IsBoxVisible) {
+	LUA->CheckType(1, Type::Vector);
+	LUA->CheckType(2, Type::Vector);
+
+	LUA->PushBool(interfaces::engineClient->IsBoxVisible(LUA->GetVector(1),LUA->GetVector(2)));
+	return 1;
+}
+
+LUA_FUNCTION(EC_IsBoxInViewCluster) {
+	LUA->CheckType(1, Type::Vector);
+	LUA->CheckType(2, Type::Vector);
+
+	LUA->PushBool(interfaces::engineClient->IsBoxInViewCluster(LUA->GetVector(1), LUA->GetVector(2)));
+	return 1;
+}
+
+LUA_FUNCTION(EC_GetEngineIsOccluded) {
+	LUA->CheckType(1, Type::Vector);
+	LUA->CheckType(2, Type::Vector);
+
+	LUA->PushBool(interfaces::engineClient->IsOccluded(LUA->GetVector(1), LUA->GetVector(2)));
+	return 1;
+}
+
+
 
 /*
 	Global vars
@@ -648,6 +948,30 @@ LUA_FUNCTION(SetCurTime) {
 LUA_FUNCTION(SetFrameTime) {
 	LUA->CheckNumber(1);
 	interfaces::globalVars->frametime = LUA->GetNumber(1);
+	return 0;
+}
+
+LUA_FUNCTION(SetRealTime) {
+	LUA->CheckNumber(1);
+	interfaces::globalVars->realtime = LUA->GetNumber(1);
+	return 0;
+}
+
+LUA_FUNCTION(SetFrameCount) {
+	LUA->CheckNumber(1);
+	interfaces::globalVars->framecount = LUA->GetNumber(1);
+	return 0;
+}
+
+LUA_FUNCTION(SetAbsFrameTime) {
+	LUA->CheckNumber(1);
+	interfaces::globalVars->absoluteframetime = LUA->GetNumber(1);
+	return 0;
+}
+
+LUA_FUNCTION(SetInterpAmt) {
+	LUA->CheckNumber(1);
+	interfaces::globalVars->interpolation_amount = LUA->GetNumber(1);
 	return 0;
 }
 
@@ -762,20 +1086,45 @@ LUA_FUNCTION(ExcludeFromCapture) {
 
 	return 1;
 }
- 
+
 /*
 	API
 */
 
 ILuaBase* luaBase;
-auto pushAPIFunction = [&](const char* name, CFunc func) {
+auto cLuaF = [&](const char* name, CFunc func) {
 	luaBase->PushCFunction(func);
 	luaBase->SetField(-2, name);
 };
 
+/*
+	Fucking runstring hook wont work so i decided to move it
+*/
+
+using RunStringExFn = bool(__fastcall*)(void* self, const char* filename, const char* path, const char* runstring, bool run, bool print_errors, bool dont_push_errors, bool no_returns);
+RunStringExFn RunStringExOriginal = nullptr;
+
+bool __fastcall RunStringExHookFunc(void* self, const char* filename, const char* path, const char* runstring, bool run, bool print_errors, bool dont_push_errors, bool no_returns) {
+	luaBase->PushSpecial(SPECIAL_GLOB);
+	luaBase->GetField(-1, "hook");
+	luaBase->GetField(-1, "Run");
+
+	luaBase->PushString("RunStringEx");
+
+	luaBase->PushString(filename);
+	luaBase->PushString(runstring);
+
+	luaBase->Call(2, 0);
+	luaBase->Pop(3);
+
+	return RunStringExOriginal(self, filename, path, runstring, run, print_errors, dont_push_errors, no_returns);
+}
+
 GMOD_MODULE_OPEN() {
 	 
 	luaBase = LUA;
+
+	//vmt::hook(luaBase, &RunStringExOriginal, (const void*)RunStringExHookFunc, 111);
 
 	/* Interfaces / netvars */
 
@@ -792,7 +1141,6 @@ GMOD_MODULE_OPEN() {
 	runcommandhook::hook(); 
 	// viewrender::hook();
 	isplayingtimedemohook::hook(); 
-	// runstringex::hook();
 
 	/* Detour */	
 
@@ -802,127 +1150,228 @@ GMOD_MODULE_OPEN() {
 
 	LUA->PushSpecial(SPECIAL_GLOB);
 
-	LUA->CreateTable();
+	/*
+	
 
-	//	Prediction
-	pushAPIFunction("GetServerTime",			GetServerTime);
-	pushAPIFunction("StartPrediction",			StartPrediction);
-	pushAPIFunction("FinishPrediction",			FinishPrediction);
+	
 
-	//	Simulation
-	pushAPIFunction("StartSimulation",			StartSimulation);
-	pushAPIFunction("SimulateTick",				SimulateTick);
-	pushAPIFunction("GetSimulationData",		GetSimulationData);
-	pushAPIFunction("FinishSimulation",			FinishSimulation);
-	pushAPIFunction("EditSimulationData",		EditSimulationData);
+	
 
-	//	CUserCmd
-	pushAPIFunction("SetCommandNumber",			SetCommandNumber);
-	pushAPIFunction("SetCommandTick",			SetCommandTick);
-	pushAPIFunction("SetTyping",				SetTyping);
-	pushAPIFunction("PredictSpread",			PredictSpread);
-	pushAPIFunction("SetContextVector",			SetContextVector);
-
-	pushAPIFunction("SetRandomSeed",			SetRandomSeed);
-	pushAPIFunction("GetCmdRandomSeed",			GetCmdRandomSeed);
-	pushAPIFunction("GetRandomSeed",			GetRandomSeed);
-
-	//	Global  
-	pushAPIFunction("SetBSendPacket",			SetBSendPacket);
-	pushAPIFunction("ForceBSendPacket",			ForceBSendPacket);
-
-	pushAPIFunction("SetInterpolation",			SetInterpolation);
-	pushAPIFunction("SetSequenceInterpolation", SetSequenceInterpolation);
-
-	pushAPIFunction("EnableBoneFix",			EnableBoneFix);
-
-	pushAPIFunction("EnableAnimFix",			EnableAnimFix);
-	pushAPIFunction("AllowAnimationUpdate",		AllowAnimationUpdate);
-	pushAPIFunction("SetMissedTicks",			SetMissedTicks);
-
-	pushAPIFunction("EnableTickbaseShifting",	EnableTickbaseShifting);
+	//	  
+	
 	 
-	pushAPIFunction("SetMaxShift",				SetMaxShift);
-	pushAPIFunction("SetMinShift",				SetMinShift);
-	pushAPIFunction("GetCurrentCharge",			GetCurrentCharge);
-
-	pushAPIFunction("GetIsShifting",			GetIsShifting);
-	pushAPIFunction("GetIsCharging",			GetIsCharging);
-
-	pushAPIFunction("StartShifting",			StartShifting);
-	pushAPIFunction("StartRecharging",			StartRecharging);
-
-	// pushAPIFunction("SetShouldSendClcMove",		SetShouldSendClcMove);
-	 
-	// Spoofed convars 
-	pushAPIFunction("SpoofConVar",				SpoofConVar);
-	pushAPIFunction("SpoofedConVarSetNumber",	SpoofedConVarSetNumber);
-
-	//  Global Vars 
-	pushAPIFunction("SetFrameTime",				SetFrameTime);
-	pushAPIFunction("SetCurTime",				SetCurTime);
-
-	// Convars
-	pushAPIFunction("ConVarSetNumber",			ConVarSetNumber);
-	pushAPIFunction("ConVarSetFlags",			ConVarSetFlags);
-	pushAPIFunction("ConVarRemoveFlags",		ConVarRemoveFlags);
-		
-	// File
-	pushAPIFunction("Read",						Read);
-	pushAPIFunction("Write",					Write); 
-
-	// NetChannel
-	pushAPIFunction("NetSetConVar",				NetSetConVar);
-	pushAPIFunction("NetDisconnect",			NetDisconnect);
-
-	pushAPIFunction("SendFile",					SendFile);
-	pushAPIFunction("RequestFile",				RequestFile);
-
-	pushAPIFunction("SetOutSequenceNr",			SetOutSequenceNr);
-	pushAPIFunction("SetInSequenceNr",			SetInSequenceNr);
-	pushAPIFunction("SetOutSequenceNrAck",		SetOutSequenceNrAck);
-	pushAPIFunction("SetNetChokedPackets",		SetNetChokedPackets);
-
-	pushAPIFunction("GetOutSequenceNr",			GetOutSequenceNr);
-	pushAPIFunction("GetInSequenceNr",			GetInSequenceNr);
-	pushAPIFunction("GetOutSequenceNrAck",		GetOutSequenceNrAck);
-	pushAPIFunction("GetNetChokedPackets",		GetNetChokedPackets);
-
-	pushAPIFunction("GetLatency",				GetLatency);
-	pushAPIFunction("GetAvgLatency",			GetAvgLatency);
-
-	//	ClientState
-	pushAPIFunction("SetLastCommandAck",		SetLastCommandAck);
-	pushAPIFunction("SetLastOutgoingCommand",	SetLastOutgoingCommand);
-	pushAPIFunction("SetChokedCommands",		SetChokedCommands);
-
-	pushAPIFunction("GetLastCommandAck",		GetLastCommandAck);
-	pushAPIFunction("GetLastOutgoingCommand",	GetLastOutgoingCommand);
-	pushAPIFunction("GetChokedCommands",		GetChokedCommands);
-
-	pushAPIFunction("GetPreviousTick",			GetPreviousTick);
-
-	//	Engine client 
-	pushAPIFunction("SetViewAngles",			SetViewAngles);
-
-	//	Entity
-	pushAPIFunction("SetEntityFlags",			SetEntityFlags);
-
-	pushAPIFunction("UpdateAnimations",			UpdateAnimations);
-	pushAPIFunction("UpdateClientAnimation",	UpdateClientAnimation);
-
-	pushAPIFunction("SetCurrentLowerBodyYaw",	SetCurrentLowerBodyYaw);
-	pushAPIFunction("SetTargetLowerBodyYaw",	SetTargetLowerBodyYaw);
-
-	pushAPIFunction("GetCurrentLowerBodyYaw",	GetCurrentLowerBodyYaw);
-	pushAPIFunction("GetTargetLowerBodyYaw",	GetTargetLowerBodyYaw);
-
-	pushAPIFunction("GetSimulationTime",		GetSimulationTime);
 
 	//  Window
 	pushAPIFunction("ExcludeFromCapture",		ExcludeFromCapture);
 
-	LUA->SetField(-2, "ded");
+	*/
+
+
+	//	Prediction
+	LUA->CreateTable();
+	cLuaF("GetServerTime", GetServerTime);
+		cLuaF("Start", StartPrediction);
+		cLuaF("Finish", FinishPrediction);
+	LUA->SetField(-2, "prediction");
+
+	//	Simulation
+	LUA->CreateTable();
+		cLuaF("Start", StartSimulation);
+		cLuaF("SimulateTick", SimulateTick);
+		cLuaF("GetData", GetSimulationData);
+		cLuaF("Finish", FinishSimulation);
+		cLuaF("EditData", EditSimulationData);
+	LUA->SetField(-2, "simulation");
+
+	//	CUserCmd
+	LUA->CreateTable();
+		cLuaF("SetCommandNumber", SetCommandNumber);
+		cLuaF("SetCommandTick", SetCommandTick);
+		cLuaF("SetTyping", SetTyping);
+		cLuaF("PredictSpread", PredictSpread);
+		cLuaF("SetContextVector", SetContextVector);
+
+		cLuaF("SetRandomSeed", SetRandomSeed);
+		cLuaF("GetCmdRandomSeed", GetCmdRandomSeed);
+		cLuaF("GetRandomSeed", GetRandomSeed);
+		 
+		cLuaF("SetBSendPacket", SetBSendPacket);
+		cLuaF("ForceBSendPacket", ForceBSendPacket);
+	LUA->SetField(-2, "usercmd");
+
+	// Tickbase
+	LUA->CreateTable();
+		cLuaF("EnableTickbaseShifting", EnableTickbaseShifting);
+
+		cLuaF("SetMaxShift", SetMaxShift);
+		cLuaF("SetMinShift", SetMinShift);
+		cLuaF("GetCurrentCharge", GetCurrentCharge);
+
+		cLuaF("GetIsShifting", GetIsShifting);
+		cLuaF("GetIsCharging", GetIsCharging);
+
+		cLuaF("StartShifting", StartShifting);
+		cLuaF("StartRecharging", StartRecharging);
+	LUA->SetField(-2, "tickbase");
+
+	// Spoof cvar
+	LUA->CreateTable();
+		cLuaF("Spoof", SpoofConVar);
+		cLuaF("SpoofedVarSetNumber", SpoofedConVarSetNumber);
+	LUA->SetField(-2, "sCvar");
+
+	// Cvar
+	LUA->CreateTable();
+		cLuaF("SetNumber", ConVarSetNumber);
+		cLuaF("SetFlags", ConVarSetFlags);
+		cLuaF("RemoveFlags", ConVarRemoveFlags);
+	LUA->SetField(-2, "cvar");
+
+	// File 
+	LUA->CreateTable();
+		cLuaF("Read", Read);
+		cLuaF("Write", Write);
+	LUA->SetField(-2, "fileMgr");
+
+	// Entity
+	LUA->CreateTable();
+		cLuaF("SetEntityFlags", SetEntityFlags);
+
+		cLuaF("UpdateAnimations", UpdateAnimations);
+		cLuaF("UpdateClientAnimation", UpdateClientAnimation);
+
+		cLuaF("SetCurrentLowerBodyYaw", SetCurrentLowerBodyYaw);
+		cLuaF("SetTargetLowerBodyYaw", SetTargetLowerBodyYaw);
+
+		cLuaF("GetCurrentLowerBodyYaw", GetCurrentLowerBodyYaw);
+		cLuaF("GetTargetLowerBodyYaw", GetTargetLowerBodyYaw);
+
+		cLuaF("GetSimulationTime", GetSimulationTime);
+
+		cLuaF("SetInterpolation", SetInterpolation);
+		cLuaF("SetSequenceInterpolation", SetSequenceInterpolation);
+
+		cLuaF("EnableBoneFix", EnableBoneFix);
+
+		cLuaF("EnableAnimFix", EnableAnimFix);
+		cLuaF("AllowAnimationUpdate", AllowAnimationUpdate);
+		cLuaF("SetMissedTicks", SetMissedTicks);
+	LUA->SetField(-2, "entList");
+
+	//	Engine client 
+	LUA->CreateTable();
+		cLuaF("SetViewAngles", EC_SetViewAngles);
+
+		cLuaF("ServerCmd", EC_ServerCmd);
+		cLuaF("ClientCmd", EC_ClientCmd);
+		cLuaF("ExecuteClientCmd", EC_ExClientCmd);
+		cLuaF("RawClientCmdUnrestricted", EC_GCmdUnrestricted);
+		cLuaF("ClientCmdUnrestricted", EC_UnrClientCmd);
+
+		cLuaF("SetRestrictServerCommands", EC_SetRestrictServerCommands);
+		cLuaF("SetRestrictClientCommands", EC_SetRestrictClientCommands);
+
+		cLuaF("GetGameDirectory", EC_GetGameDirectory);
+
+		cLuaF("IsBoxVisible", EC_IsBoxVisible);
+		cLuaF("IsBoxInViewCluster", EC_IsBoxInViewCluster);
+		cLuaF("IsOccluded", EC_GetEngineIsOccluded);
+		 
+		cLuaF("SetTimeManipulator", EC_SetTimeManipulator);
+		cLuaF("GetTime", EC_GetTime);
+		cLuaF("GetLastTimeStamp", EC_GetLastTimeStamp);
+
+		cLuaF("GetLocalPlayer", EC_GetLocalPlayer);
+		cLuaF("ChangeTeam", EC_ChangeTeam);
+		// !!! HOOK IsTakingScreenshot !!!
+	LUA->SetField(-2, "engineClient");
+
+	//  Global Vars 
+	LUA->CreateTable();
+		cLuaF("SetFrameTime", SetFrameTime);
+		cLuaF("SetCurTime", SetCurTime);
+		cLuaF("SetRealTime", SetRealTime);
+		cLuaF("SetFrameCount", SetFrameCount);
+		cLuaF("SetAbsFrameTime", SetAbsFrameTime);
+		cLuaF("SetInterpolationAmount", SetInterpAmt);
+	LUA->SetField(-2, "globalVars");
+
+	//	ClientState
+	LUA->CreateTable();
+		cLuaF("SetChokedCommands", SetChokedCommands);
+		cLuaF("GetChokedCommands", GetChokedCommands);
+
+		cLuaF("SetLastCommandAck", SetLastCommandAck);
+		cLuaF("GetLastCommandAck", GetLastCommandAck);
+
+		cLuaF("SetLastOutgoingCommand", SetLastOutgoingCommand);
+		cLuaF("GetLastOutgoingCommand", GetLastOutgoingCommand);
+
+		cLuaF("GetPreviousTick", GetPreviousTick);
+	LUA->SetField(-2, "clientState");
+	 
+	// NetChannel
+	LUA->CreateTable();
+		cLuaF("SetOutSequenceNr", SetOutSequenceNr);
+		cLuaF("GetOutSequenceNr", GetOutSequenceNr);
+
+		cLuaF("SetInSequenceNr", SetInSequenceNr);
+		cLuaF("GetInSequenceNr", GetInSequenceNr);
+
+		cLuaF("SetOutSequenceNrAck", SetOutSequenceNrAck);
+		cLuaF("GetOutSequenceNrAck", GetOutSequenceNrAck);
+
+		cLuaF("SetChokedPackets", SetNetChokedPackets);
+		cLuaF("GetChokedPackets", GetNetChokedPackets);
+
+		cLuaF("SetPacketDrop", SetPacketDrop);
+		cLuaF("GetPacketDrop", GetPacketDrop);
+
+		cLuaF("SetInReliableState", SetInReliableState);
+		cLuaF("GetInReliableState", GetInReliableState);
+
+		cLuaF("SetOutReliableState", SetOutReliableState);
+		cLuaF("GetOutReliableState", GetOutReliableState);
+
+		cLuaF("GetLatency", GetLatency);
+		cLuaF("GetAvgLatency", GetAvgLatency);
+
+		cLuaF("GetChannelName", GetNetName);
+		cLuaF("GetChannelAdress", GetNetAdress);
+		cLuaF("GetTime", GetNetTime);
+		cLuaF("GetTimeConnected", GetNetTimeConnected);
+		cLuaF("GetBufferSize", GetNetBufferSize);
+		cLuaF("GetDataRate", GetNetDataRate);
+		cLuaF("GetIsLoopback", GetIsLoopback);
+		cLuaF("GetIsTimingOut", GetIsTimingOut);
+
+		cLuaF("GetAvgLoss", GetAvgLoss);
+		cLuaF("GetAvgChoke", GetAvgChoke);
+		cLuaF("GetAvgData", GetAvgData);
+		cLuaF("GetAvgPackets", GetAvgPackets);
+		cLuaF("GetTotalData", GetTotalData);
+		cLuaF("GetSequenceNrFlow", GetSequenceNrFlow);
+		cLuaF("IsValidPacket", IsValidPacket);
+		cLuaF("GetPacketTime", GetPacketTime);
+		cLuaF("GetPacketBytes", GetPacketBytes);
+
+		cLuaF("SetConVar", NetSetConVar);
+		cLuaF("Disconnect", NetDisconnect);
+		cLuaF("SendFile", SendFile);
+		cLuaF("RequestFile", RequestFile);
+
+		cLuaF("SetDataRate", SetDataRate);
+		cLuaF("SetChallengeNr", SetChallengeNr);
+
+		cLuaF("SetCompressionMode", SetCompressionMode);
+		cLuaF("SetInterpolationAmount", SetInterpolationAmount);
+		cLuaF("SetRemoteFramerate", SetRemoteFramerate);
+		cLuaF("SetMaxRoutablePayloadSize", SetMaxRoutablePayloadSize);
+
+		cLuaF("NetShutdownStr", NetShutdownStr);
+
+		cLuaF("SetTimeout", SetTimeout);
+	LUA->SetField(-2, "netChan");
 
 	return 0;
 }
@@ -940,6 +1389,9 @@ GMOD_MODULE_CLOSE() {
 	// viewrender::unHook();
 	isplayingtimedemohook::unHook();
 	// runstringex::unHook();
+
+	//RunStringExFn dummy = nullptr;
+	//vmt::hook(luaBase, &dummy, RunStringExOriginal, 111);
 
 	/* Detour */
 
