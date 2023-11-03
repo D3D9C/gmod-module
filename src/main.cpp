@@ -1169,22 +1169,18 @@ GMOD_MODULE_OPEN() {
 
 	//	Prediction
 	LUA->CreateTable();
-	cLuaF("GetServerTime", GetServerTime);
-		cLuaF("Start", StartPrediction);
-		cLuaF("Finish", FinishPrediction);
-	LUA->SetField(-2, "prediction");
+		cLuaF("GetServerTime", GetServerTime);
+		cLuaF("StartPrediction", StartPrediction);
+		cLuaF("FinishPrediction", FinishPrediction);
 
-	//	Simulation
-	LUA->CreateTable();
-		cLuaF("Start", StartSimulation);
+		//	Simulation
+		cLuaF("StartSimulation", StartSimulation);
 		cLuaF("SimulateTick", SimulateTick);
-		cLuaF("GetData", GetSimulationData);
-		cLuaF("Finish", FinishSimulation);
-		cLuaF("EditData", EditSimulationData);
-	LUA->SetField(-2, "simulation");
+		cLuaF("GetSimulationData", GetSimulationData);
+		cLuaF("FinishSimulation", FinishSimulation);
+		cLuaF("EditSimulationData", EditSimulationData);
 
-	//	CUserCmd
-	LUA->CreateTable();
+		//	CUserCmd
 		cLuaF("SetCommandNumber", SetCommandNumber);
 		cLuaF("SetCommandTick", SetCommandTick);
 		cLuaF("SetTyping", SetTyping);
@@ -1197,10 +1193,8 @@ GMOD_MODULE_OPEN() {
 		 
 		cLuaF("SetBSendPacket", SetBSendPacket);
 		cLuaF("ForceBSendPacket", ForceBSendPacket);
-	LUA->SetField(-2, "usercmd");
 
-	// Tickbase
-	LUA->CreateTable();
+		// Tickbase
 		cLuaF("EnableTickbaseShifting", EnableTickbaseShifting);
 
 		cLuaF("SetMaxShift", SetMaxShift);
@@ -1212,29 +1206,21 @@ GMOD_MODULE_OPEN() {
 
 		cLuaF("StartShifting", StartShifting);
 		cLuaF("StartRecharging", StartRecharging);
-	LUA->SetField(-2, "tickbase");
 
-	// Spoof cvar
-	LUA->CreateTable();
-		cLuaF("Spoof", SpoofConVar);
-		cLuaF("SpoofedVarSetNumber", SpoofedConVarSetNumber);
-	LUA->SetField(-2, "sCvar");
+		// Spoof cvar
+		cLuaF("SpoofConVar", SpoofConVar);
+		cLuaF("SpoofedConVarSetNumber", SpoofedConVarSetNumber);
 
-	// Cvar
-	LUA->CreateTable();
-		cLuaF("SetNumber", ConVarSetNumber);
-		cLuaF("SetFlags", ConVarSetFlags);
-		cLuaF("RemoveFlags", ConVarRemoveFlags);
-	LUA->SetField(-2, "cvar");
+		// Cvar
+		cLuaF("ConVarSetNumber", ConVarSetNumber);
+		cLuaF("ConVarSetFlags", ConVarSetFlags);
+		cLuaF("ConVarRemoveFlags", ConVarRemoveFlags);
 
-	// File 
-	LUA->CreateTable();
+		// File 
 		cLuaF("Read", Read);
 		cLuaF("Write", Write);
-	LUA->SetField(-2, "fileMgr");
 
-	// Entity
-	LUA->CreateTable();
+		// Entity
 		cLuaF("SetEntityFlags", SetEntityFlags);
 
 		cLuaF("UpdateAnimations", UpdateAnimations);
@@ -1256,10 +1242,8 @@ GMOD_MODULE_OPEN() {
 		cLuaF("EnableAnimFix", EnableAnimFix);
 		cLuaF("AllowAnimationUpdate", AllowAnimationUpdate);
 		cLuaF("SetMissedTicks", SetMissedTicks);
-	LUA->SetField(-2, "entList");
 
-	//	Engine client 
-	LUA->CreateTable();
+		//	Engine client 
 		cLuaF("SetViewAngles", EC_SetViewAngles);
 
 		cLuaF("ServerCmd", EC_ServerCmd);
@@ -1284,20 +1268,16 @@ GMOD_MODULE_OPEN() {
 		cLuaF("GetLocalPlayer", EC_GetLocalPlayer);
 		cLuaF("ChangeTeam", EC_ChangeTeam);
 		// !!! HOOK IsTakingScreenshot !!!
-	LUA->SetField(-2, "engineClient");
 
-	//  Global Vars 
-	LUA->CreateTable();
+		//  Global Vars 
 		cLuaF("SetFrameTime", SetFrameTime);
 		cLuaF("SetCurTime", SetCurTime);
 		cLuaF("SetRealTime", SetRealTime);
 		cLuaF("SetFrameCount", SetFrameCount);
 		cLuaF("SetAbsFrameTime", SetAbsFrameTime);
 		cLuaF("SetInterpolationAmount", SetInterpAmt);
-	LUA->SetField(-2, "globalVars");
 
-	//	ClientState
-	LUA->CreateTable();
+		//	ClientState
 		cLuaF("SetChokedCommands", SetChokedCommands);
 		cLuaF("GetChokedCommands", GetChokedCommands);
 
@@ -1308,10 +1288,9 @@ GMOD_MODULE_OPEN() {
 		cLuaF("GetLastOutgoingCommand", GetLastOutgoingCommand);
 
 		cLuaF("GetPreviousTick", GetPreviousTick);
-	LUA->SetField(-2, "clientState");
-	 
-	// NetChannel
-	LUA->CreateTable();
+
+		// NetChannel
+
 		cLuaF("SetOutSequenceNr", SetOutSequenceNr);
 		cLuaF("GetOutSequenceNr", GetOutSequenceNr);
 
@@ -1355,8 +1334,8 @@ GMOD_MODULE_OPEN() {
 		cLuaF("GetPacketTime", GetPacketTime);
 		cLuaF("GetPacketBytes", GetPacketBytes);
 
-		cLuaF("SetConVar", NetSetConVar);
-		cLuaF("Disconnect", NetDisconnect);
+		cLuaF("NetSetConVar", NetSetConVar);
+		cLuaF("NetDisconnect", NetDisconnect);
 		cLuaF("SendFile", SendFile);
 		cLuaF("RequestFile", RequestFile);
 
@@ -1371,7 +1350,7 @@ GMOD_MODULE_OPEN() {
 		cLuaF("NetShutdownStr", NetShutdownStr);
 
 		cLuaF("SetTimeout", SetTimeout);
-	LUA->SetField(-2, "netChan");
+	LUA->SetField(-2, "ded");
 
 	return 0;
 }
