@@ -36,6 +36,39 @@ using namespace GarrysMod::Lua;
 #include "entity.h"
  
 /*
+	Win Api
+*/
+
+LUA_FUNCTION(GetClipboardText) {
+	if (!OpenClipboard(nullptr)) {
+		LUA->PushBool(false);
+		return 1;
+	}
+
+	HANDLE clipboardHandle = GetClipboardData(CF_TEXT);
+	if (clipboardHandle == nullptr) {
+		CloseClipboard();
+		LUA->PushBool(false);
+		return 1;
+	}
+
+	char* clipboardText = static_cast<char*>(GlobalLock(clipboardHandle));
+	if (clipboardText == nullptr) {
+		CloseClipboard();
+		LUA->PushBool(false);
+		return 1;
+	}
+
+	LUA->PushString(clipboardText);
+
+	GlobalUnlock(clipboardHandle);
+	CloseClipboard();
+
+	return 1;
+}
+
+
+/*
 	Prediction
 */
 
@@ -371,7 +404,7 @@ LUA_FUNCTION(SetMaxShift) {
 	LUA->CheckNumber(1);
 	globals::maxTickbaseShift = LUA->GetNumber(1);
 	return 0;
-}
+} 
 
 LUA_FUNCTION(SetMinShift) {
 	LUA->CheckNumber(1);
@@ -563,6 +596,10 @@ LUA_FUNCTION(NetDisconnect) {
 
 	return 1;
 }
+
+
+
+// clc_VoiceData
 
 LUA_FUNCTION(RequestFile) {
 	LUA->CheckString(1);
@@ -1169,6 +1206,10 @@ GMOD_MODULE_OPEN() {
 
 	//	Prediction
 	LUA->CreateTable();
+		//	System
+		cLuaF("GetClipboardText", GetClipboardText);
+
+		//	Prediction
 		cLuaF("GetServerTime", GetServerTime);
 		cLuaF("StartPrediction", StartPrediction);
 		cLuaF("FinishPrediction", FinishPrediction);
@@ -1382,3 +1423,4 @@ GMOD_MODULE_CLOSE() {
 
 	return 0;
 }
+
