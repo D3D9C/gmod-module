@@ -254,16 +254,15 @@ public:
 		m_bReliable = false;
 	}
 
-	/*
-	void SetupVMT() {
-		static void** vmt = reinterpret_cast<void**>(getAbsAddr(findPattern("engine.dll", "FF C0 03 F8 48 89 B4 24 E8 10 00 00 48 8D 05") + 12));
+	void Init() {
+		static void** vmt = reinterpret_cast<void**>(getAbsAddr(findPattern("engine.dll", "FF C0 03 F8 C6 44 24 ?? ?? 48 8D 05") + 9));
 		*reinterpret_cast<void***>(this) = vmt;
-	}*/
+	}
 
 	int			m_nBackupCommands;
 	int			m_nNewCommands;
 	int			m_nLength;
-	byte		pad_0001[24];
+	byte		pad_0001[24]; 
 	bf_read		m_DataIn;
 	bf_write	m_DataOut;
 }; 

@@ -521,14 +521,14 @@ namespace detour {
 		int nextCommandNr = interfaces::clientState->lastoutgoingcommand + interfaces::clientState->chokedcommands + 1;
 
 		CLC_Move moveMsg;
-		//moveMsg.SetupVMT();
+		moveMsg.Init();
 		 
 		moveMsg.m_DataOut.StartWriting(data, sizeof(data));
 
 		// How many real new commands have queued up
 		moveMsg.m_nNewCommands = 1 + interfaces::clientState->chokedcommands;
 		moveMsg.m_nNewCommands = std::clamp(moveMsg.m_nNewCommands, 0, MAX_NEW_COMMANDS);
-
+		 
 		int extraCommands = interfaces::clientState->chokedcommands + 1 - moveMsg.m_nNewCommands;
 
 		int backupCommands = max(2, extraCommands);
@@ -563,27 +563,10 @@ namespace detour {
 			bVoice = true;
 
 		auto msgName = msg.GetName();
-
-		if (globals::luaInit) {
-			auto* lua = interfaces::clientLua;
-
-			lua->PushSpecial(SPECIAL_GLOB);
-			lua->GetField(-1, "hook");
-			lua->GetField(-1, "Run");
-
-			lua->PushString("SendNetMsg");
-
-			lua->PushString(msgName);
-
-			lua->Call(2, 0);
-			lua->Pop(2);
-		}
-
-		/*
 		if (strcmp(msgName, "clc_Move") == 0) {
 			SendMove();
 			return true; 
-		}*/
+		}
 
 		return SendNetMsgOriginal(self, msg, bForceReliable, bVoice);
 	}
