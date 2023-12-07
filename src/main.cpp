@@ -27,7 +27,6 @@ using namespace GarrysMod::Lua;
 #include "runcommandhook.h"
 #include "viewrenderhook.h"
 #include "isplayingtimedemo.h"
-#include "sendnetmsg.h"
 #include "luashared.h"
 #include "detour.h"
 #include "globals.h"
@@ -433,6 +432,12 @@ LUA_FUNCTION(GetIsCharging) {
 LUA_FUNCTION(StartShifting) {
 	LUA->CheckType(1, Type::Bool);
 	globals::bShouldShift = LUA->GetBool(1);
+	return 0;
+}
+
+LUA_FUNCTION(EnableSlowmotion) {
+	LUA->CheckType(1, Type::Bool);
+	globals::bShouldSlowMo = LUA->GetBool(1);
 	return 0;
 }
 
@@ -1170,7 +1175,6 @@ GMOD_MODULE_OPEN() {
 
 	/* Virtual */
 
-	//sendnetmsg::hook();
 	createmovehook::hook();
 	doimpacthook::hook();
 	framestagenotify::hook(); 
@@ -1247,6 +1251,8 @@ GMOD_MODULE_OPEN() {
 
 		cLuaF("StartShifting", StartShifting);
 		cLuaF("StartRecharging", StartRecharging);
+
+		cLuaF("EnableSlowmotion", EnableSlowmotion);
 
 		// Spoof cvar
 		cLuaF("SpoofConVar", SpoofConVar);
@@ -1400,7 +1406,6 @@ GMOD_MODULE_CLOSE() {
 	 
 	/* Virtual */
 
-	//sendnetmsg::unHook();
 	doimpacthook::unHook();
 	framestagenotify::unHook();
 	createmovehook::unHook();

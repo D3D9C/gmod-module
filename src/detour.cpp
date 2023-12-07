@@ -11,7 +11,7 @@
 #include "clientstate.h"
 #include "luafuncs.h"
 #include "chlclient.h"
-
+#include "isurface.h"
 #include "d3d9.h"
 #include <intrin.h>
 
@@ -51,8 +51,8 @@ namespace detour {
 	CLMoveFn CLMoveOriginal = nullptr;
 
 	void __fastcall CLMoveHookFunc(float accumulated_extra_samples, bool bFinalTick) {
-		globals::bIsRecharging	= false;
-		globals::bIsShifting	= false;
+		globals::bIsRecharging = false;
+		globals::bIsShifting = false;
 
 		if (not globals::canShiftTickbase) {
 			CLMoveOriginal(accumulated_extra_samples, bFinalTick);
@@ -62,7 +62,7 @@ namespace detour {
 		if (globals::bShouldRecharge and globals::curTickbaseCharge < globals::maxTickbaseShift) {
 			globals::curTickbaseCharge++;
 			globals::bIsRecharging = true;
-			return; 
+			return;
 		}
 
 		if (globals::canShiftTickbase and globals::curTickbaseCharge >= globals::minTickbaseShift and globals::bShouldShift) {
@@ -114,7 +114,7 @@ namespace detour {
 	using PacketStartFn = void(__fastcall*)(CClientState* self, int incoming_sequence, int outgoing_acknowledged);
 	PacketStartFn PacketStartOriginal = nullptr;
 
-	std::deque<OutCommand> cmds; 
+	std::deque<OutCommand> cmds;
 
 	void __fastcall PacketStartHookFunc(CClientState* self, int incoming_sequence, int outgoing_acknowledged) {
 		for (auto it = cmds.rbegin(); it != cmds.rend(); ++it) {
@@ -158,8 +158,8 @@ namespace detour {
 
 		CBasePlayer* localPlayer = reinterpret_cast<CBasePlayer*>(interfaces::entityList->GetClientEntity(interfaces::engineClient->GetLocalPlayer()));
 
-		globals::updateTicks	= 1;
-		globals::updateAllowed	= false;
+		globals::updateTicks = 1;
+		globals::updateAllowed = false;
 
 		if (globals::luaInit) {
 			auto* lua = interfaces::clientLua;
@@ -185,29 +185,29 @@ namespace detour {
 			entry.m_bNeedsToInterpolate = false;
 		}
 
-		float OldCurtime	= interfaces::globalVars->curtime;
-		float OldFrameTime	= interfaces::globalVars->frametime;
-		int OldFlags		= self->m_iEFlags();
-		int OldEffects		= self->m_fEffects();
+		float OldCurtime = interfaces::globalVars->curtime;
+		float OldFrameTime = interfaces::globalVars->frametime;
+		int OldFlags = self->m_iEFlags();
+		int OldEffects = self->m_fEffects();
 
 		float simulationTime = self == localPlayer ? g_prediction.GetServerTime() : self->m_flSimulationTime();
 
-		interfaces::globalVars->curtime		= simulationTime;
-		interfaces::globalVars->frametime	= interfaces::globalVars->interval_per_tick * globals::updateTicks;
+		interfaces::globalVars->curtime = simulationTime;
+		interfaces::globalVars->frametime = interfaces::globalVars->interval_per_tick * globals::updateTicks;
 
 		self->m_iEFlags() |= static_cast<int>(EFlags::DIRTY_ABSVELOCITY);
 		self->m_fEffects() |= static_cast<int>(EEffects::NOINTERP);
 
 		UpdateClientsideAnimationOriginal(self);
 
-		interfaces::globalVars->curtime		= OldCurtime;
-		interfaces::globalVars->frametime	= OldFrameTime;
+		interfaces::globalVars->curtime = OldCurtime;
+		interfaces::globalVars->frametime = OldFrameTime;
 
-		self->m_iEFlags()	= OldFlags;
-		self->m_fEffects()	= OldEffects;
+		self->m_iEFlags() = OldFlags;
+		self->m_fEffects() = OldEffects;
 
-		globals::updateTicks	= 1;
-		globals::updateAllowed	= false;
+		globals::updateTicks = 1;
+		globals::updateAllowed = false;
 	}
 
 	/*
@@ -423,7 +423,9 @@ namespace detour {
 		// Render state fix end 
 
 		if (globals::luaInit) {
-			/*auto* lua = interfaces::clientLua;
+			interfaces::surface->StartDrawing();
+
+			auto* lua = interfaces::clientLua;
 
 			lua->PushSpecial(SPECIAL_GLOB);
 			lua->GetField(-1, "hook");
@@ -436,11 +438,12 @@ namespace detour {
 
 			lua->Call(2, 0);
 			lua->Pop(2);
-			*/
+
+			interfaces::surface->FinishDrawing();
 		}
 
 		// Render state fix start 
-	
+
 		device->SetSamplerState(NULL, D3DSAMP_ADDRESSU, D3DTADDRESS_WRAP);
 		device->SetSamplerState(NULL, D3DSAMP_ADDRESSV, D3DTADDRESS_WRAP);
 		device->SetSamplerState(NULL, D3DSAMP_ADDRESSW, D3DTADDRESS_WRAP);
@@ -496,7 +499,7 @@ namespace detour {
 		device->SetVertexShader(vertex_shader);
 
 		// Render state fix end
-		
+
 		return result;
 	}
 
@@ -522,13 +525,15 @@ namespace detour {
 
 		CLC_Move moveMsg;
 		moveMsg.Init();
-		 
+
 		moveMsg.m_DataOut.StartWriting(data, sizeof(data));
 
 		// How many real new commands have queued up
 		moveMsg.m_nNewCommands = 1 + interfaces::clientState->chokedcommands;
 		moveMsg.m_nNewCommands = std::clamp(moveMsg.m_nNewCommands, 0, MAX_NEW_COMMANDS);
-		 
+
+		if (globals::bShouldSlowMo) moveMsg.m_nNewCommands = 0;
+
 		int extraCommands = interfaces::clientState->chokedcommands + 1 - moveMsg.m_nNewCommands;
 
 		int backupCommands = max(2, extraCommands);
@@ -553,7 +558,8 @@ namespace detour {
 			INetChannel* chan = reinterpret_cast<INetChannel*>(interfaces::engineClient->GetNetChannelInfo());
 
 			chan->m_nChokedPackets -= extraCommands;
-
+			if (globals::bShouldSlowMo) chan->m_nChokedPackets = 0;
+			
 			SendNetMsgOriginal(chan, reinterpret_cast<INetMessage&>(moveMsg), false, false);
 		}
 	}
@@ -563,9 +569,34 @@ namespace detour {
 			bVoice = true;
 
 		auto msgName = msg.GetName();
+
+		if (globals::luaInit) {
+			auto* lua = interfaces::clientLua;
+
+			lua->PushSpecial(SPECIAL_GLOB);
+			lua->GetField(-1, "hook");
+			lua->GetField(-1, "Run");
+
+			lua->PushString("SendNetMsg");
+
+			lua->PushString(msgName);
+
+			lua->Call(2, 0);
+
+			/*bool ret = lua->GetBool(-1);
+
+			if (ret == false) {
+				lua->Pop(2);
+				return true;
+			}*/
+
+			lua->Pop(2);
+		}
+
 		if (strcmp(msgName, "clc_Move") == 0) {
 			SendMove();
-			return true; 
+			
+			return true;
 		}
 
 		return SendNetMsgOriginal(self, msg, bForceReliable, bVoice);
@@ -576,9 +607,9 @@ namespace detour {
 		Lua hooks
 	*/
 
-	/*
-	auto lua_libraries = **(lua_library_holder_t***)(getAbsAddr(findPattern("client.dll", "48 89 1D ?? ?? ?? ?? 40 84 ED") + 2));
-	auto lua_classes = **(lua_class_holder_t***)(getAbsAddr(findPattern("client.dll", "48 8B 05 ?? ?? ?? ?? 48 8D 7F 08") + 1));
+
+	auto lua_libraries = **(lua_library_holder_t***)(getAbsAddr(findPattern("client.dll", "48 89 1D ?? ?? ?? ?? 40 84 ED"))); // getAbsAddr(\x48\x89\x1d ? ? ? ? \x48\x89\x6c\x24
+	auto lua_classes = **(lua_class_holder_t***)(getAbsAddr(findPattern("client.dll", "48 8B 05 ?? ?? ?? ?? 48 8D 7F 08")));
 	int(*luaFuncOriginal)(lua_State*);
 
 	bool HookLuaFunction(const char* table, const char* func_name, void* detour, void** original) {
@@ -633,6 +664,8 @@ namespace detour {
 		return false;
 	}
 
+
+
 	int net_start_hook(lua_State* lua) {
 
 		if (globals::luaInit) {
@@ -642,7 +675,7 @@ namespace detour {
 			lua->GetField(-1, "hook");
 			lua->GetField(-1, "Run");
 
-			lua->PushString("PreNetStart");
+			lua->PushString("luafunc");
 
 			lua->PushNumber(1);
 
@@ -651,19 +684,15 @@ namespace detour {
 		}
 
 		return luaFuncOriginal(lua);
-	}*/
-	
-	/*
-		EndScene
-	*/
+	}
 
 
 	/*
 		Patterns
 	*/
 
-	auto SeqChangePattern   = findPattern("client.dll", "48 85 D2 0F 84 D5 00 00 00 48 89 6C 24 10 48 89 74 24 18");
-	auto CL_MovePattern		= findPattern("engine.dll", "40 55 53 48 8D AC 24 38 F0 FF FF B8 C8 10 00 00 E8 ?? ?? ?? ?? 48 2B E0 0F 29 B4 24 B0 10 00 00");
+	auto SeqChangePattern = findPattern("client.dll", "48 85 D2 0F 84 D5 00 00 00 48 89 6C 24 10 48 89 74 24 18");
+	auto CL_MovePattern = findPattern("engine.dll", "40 55 53 48 8D AC 24 38 F0 FF FF B8 C8 10 00 00 E8 ?? ?? ?? ?? 48 2B E0 0F 29 B4 24 B0 10 00 00");
 	auto PacketStartPattern = findPattern("engine.dll", "48 8B 01 48 83 C4 20 5B 48 FF A0 ?? ?? ?? ?? 48 83 C4 20 5B C3 CC CC CC CC CC CC CC 89 91 ?? ?? ?? ??") + 28;
 
 	/*
@@ -671,30 +700,64 @@ namespace detour {
 	*/
 
 	void hook() {
-		localPlayer = reinterpret_cast<CBaseEntity*>(interfaces::entityList->GetClientEntity(interfaces::engineClient->GetLocalPlayer()));
 		globals::device = *reinterpret_cast<IDirect3DDevice9**>(getAbsAddr(findPattern("shaderapidx9.dll", "3D 7C 01 76 88 74 07 3D 0E 00 07 80 75 34 48 8B 0D") + 14));
 
-		void* ShouldInterpolateT = vmt::get<void*>(localPlayer, 146);
-		void* UpdateClientAnimsT = vmt::get<void*>(localPlayer, 236);
-		void* SendNetMsgT = vmt::get<void*>(interfaces::engineClient->GetNetChannel(), 40);
 		void* EndSceneT = vmt::get<void*>(globals::device, 42);
-		 
+		void* SendNetMsgT = vmt::get<void*>(interfaces::engineClient->GetNetChannel(), 40);
+
 		if (MH_Initialize() == MH_OK)
-		{ 
+		{
 			// MH_CreateHook(EndSceneT,			(LPVOID)&EndSceneHookFunc,						(LPVOID*)&EndSceneOriginal);
-			MH_CreateHook(ShouldInterpolateT,	(LPVOID)&ShouldInterpolateHookFunc,				(LPVOID*)&ShouldInterpolateOriginal);
-			MH_CreateHook(UpdateClientAnimsT,	(LPVOID)&UpdateClientsideAnimationHookFunc,		(LPVOID*)&UpdateClientsideAnimationOriginal);
-			MH_CreateHook(SendNetMsgT,			(LPVOID)&SendNetMsgHookFunc,					(LPVOID*)&SendNetMsgOriginal);
+			
+			
+
+			MH_CreateHook(SendNetMsgT, (LPVOID)&SendNetMsgHookFunc, (LPVOID*)&SendNetMsgOriginal);
+
+			MH_CreateHook((LPVOID)SeqChangePattern, (LPVOID)&CheckForSequenceChangeHookFunc, (LPVOID*)&SeqChangeOriginal);
+			MH_CreateHook((LPVOID)CL_MovePattern, (LPVOID)&CLMoveHookFunc, (LPVOID*)&CLMoveOriginal);
+			MH_CreateHook((LPVOID)PacketStartPattern, (LPVOID)&PacketStartHookFunc, (LPVOID*)&PacketStartOriginal);
+
+			HookLuaFunction("render", "Capture", net_start_hook, (LPVOID*)&luaFuncOriginal);
 
 
-			MH_CreateHook((LPVOID)SeqChangePattern,		(LPVOID)&CheckForSequenceChangeHookFunc,		(LPVOID*)&SeqChangeOriginal);
-			MH_CreateHook((LPVOID)CL_MovePattern,		(LPVOID)&CLMoveHookFunc,						(LPVOID*)&CLMoveOriginal);
-			MH_CreateHook((LPVOID)PacketStartPattern,	(LPVOID)&PacketStartHookFunc,					(LPVOID*)&PacketStartOriginal);
 
-			//HookLuaFunction("net", "Start", net_start_hook, (LPVOID*)&luaFuncOriginal);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 			MH_EnableHook(MH_ALL_HOOKS) == MH_OK;
 		}
+	}
+
+	void postInit() {
+		localPlayer = reinterpret_cast<CBaseEntity*>(interfaces::entityList->GetClientEntity(interfaces::engineClient->GetLocalPlayer()));
+	
+		void* ShouldInterpolateT = vmt::get<void*>(localPlayer, 146);
+		void* UpdateClientAnimsT = vmt::get<void*>(localPlayer, 236);
+		
+		MH_CreateHook(ShouldInterpolateT, (LPVOID)&ShouldInterpolateHookFunc, (LPVOID*)&ShouldInterpolateOriginal);
+		MH_CreateHook(UpdateClientAnimsT, (LPVOID)&UpdateClientsideAnimationHookFunc, (LPVOID*)&UpdateClientsideAnimationOriginal);
+	
+		MH_EnableHook(ShouldInterpolateT);
+		MH_EnableHook(UpdateClientAnimsT);
 	}
 
 	void unHook() {
