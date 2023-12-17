@@ -108,25 +108,6 @@ LUA_FUNCTION(SetCommandNumber) {
 	return 0;
 }
 
-LUA_FUNCTION(SetRandomSeed) {
-	LUA->CheckType(1, Type::UserCmd);
-	LUA->CheckNumber(2);
-
-	CUserCmd* cmd = LUA->GetUserType<CUserCmd>(1, Type::UserCmd);
-	cmd->random_seed = LUA->GetNumber(2);
-
-	return 0;
-}
-
-LUA_FUNCTION(GetCmdRandomSeed) {
-	LUA->CheckType(1, Type::UserCmd);
-
-	CUserCmd* cmd = LUA->GetUserType<CUserCmd>(1, Type::UserCmd);
-	LUA->PushNumber( cmd->random_seed );
-
-	return 1;
-}
-
 LUA_FUNCTION(GetRandomSeed) {
 	LUA->CheckType(1, Type::UserCmd);
 
@@ -144,6 +125,49 @@ LUA_FUNCTION(GetRandomSeed) {
 	LUA->PushNumber(seed);
 
 	return 1;
+}
+
+LUA_FUNCTION(SetRandomSeed) {
+	LUA->CheckType(1, Type::UserCmd);
+	LUA->CheckNumber(2);
+
+	CUserCmd* cmd = LUA->GetUserType<CUserCmd>(1, Type::UserCmd);
+	int nSeed = LUA->GetNumber(2);
+	int num = 0;
+
+	uint8_t seed;
+	{
+		Chocobo1::MD5 md5;
+		md5.addData(&nSeed, sizeof(nSeed));
+		md5.finalize();
+
+		seed = *reinterpret_cast<uint32_t*>(md5.toArray().data() + 6) & 0xFF;
+	}
+
+	for (int i = cmd->command_number + 1; !num; i++)
+	{
+		uint8_t uSeed;
+		{
+			Chocobo1::MD5 md5;
+			md5.addData(&i, sizeof(i));
+			md5.finalize();
+
+			uSeed = *reinterpret_cast<uint32_t*>(md5.toArray().data() + 6) & 0xFF;
+		}
+
+		if (!uSeed)
+			continue;
+
+		if ((uSeed & 255) != (seed & 255))
+			continue;
+
+		num = i;
+
+	}
+
+	cmd->command_number = num;
+
+	return 0;
 }
 
 LUA_FUNCTION(SetCommandTick) {
@@ -1021,6 +1045,23 @@ LUA_FUNCTION(SetInterpAmt) {
 	Entity
 */
 
+/*
+
+LUA_FUNCTION(GetNetVar) {
+	LUA->CheckNumber(1);
+	LUA->CheckString(2);
+	LUA->CheckString(3);
+	LUA->CheckNumber(4);
+
+	CBasePlayer* Ply = reinterpret_cast<CBasePlayer*>(interfaces::entityList->GetClientEntity(LUA->GetNumber(1)));
+
+	int offset = netvars::netvars[LUA->GetString(1) "->" LUA->GetString(2)];
+	assert(offset != NULL);
+	auto ret = *reinterpret_cast<type*>(reinterpret_cast<std::uintptr_t>(this) + offset);
+
+}
+*/
+
 LUA_FUNCTION(GetSimulationTime) {
 	LUA->CheckNumber(1);
 
@@ -1191,7 +1232,12 @@ GMOD_MODULE_OPEN() {
 
 	LUA->PushSpecial(SPECIAL_GLOB);
 
+
+
+
 	/*
+	* 
+	* 
 	
 
 	
@@ -1233,7 +1279,6 @@ GMOD_MODULE_OPEN() {
 		cLuaF("SetContextVector", SetContextVector);
 
 		cLuaF("SetRandomSeed", SetRandomSeed);
-		cLuaF("GetCmdRandomSeed", GetCmdRandomSeed);
 		cLuaF("GetRandomSeed", GetRandomSeed);
 		 
 		cLuaF("SetBSendPacket", SetBSendPacket);
