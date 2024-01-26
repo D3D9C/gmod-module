@@ -23,6 +23,8 @@ namespace globals {
 	extern int		minTickbaseShift;
 	extern int		curTickbaseCharge;
 
+	extern bool		bShouldSlowMo;
+
 	extern bool		bIsShifting;
 	extern bool		bIsRecharging;
 

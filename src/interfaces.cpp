@@ -59,7 +59,7 @@ namespace interfaces {
 
 	IEngineClient* engineClient = nullptr;
 	CHLClient* client = nullptr;
-	CInput* input = nullptr;
+	CInput* input = nullptr; 
 	CClientState* clientState = nullptr;
 	ClientModeShared* clientMode = nullptr;
 	CGlobalVars* globalVars = nullptr;
@@ -72,8 +72,8 @@ namespace interfaces {
 	CLuaShared* luaShared = nullptr;
 	ILuaBase* clientLua = nullptr;
 	CCvar* cvar = nullptr;
-	CViewRender* view = nullptr;
 	ISurface* surface = nullptr;
+	CModelRender* modelRender = nullptr;
 
 	void init() {
 		HMODULE clientDll		= GetModuleHandleA("client.dll");
@@ -90,16 +90,19 @@ namespace interfaces {
 		VStdLibCreateInterface		= reinterpret_cast<CreateInterfaceFn>(GetProcAddress(vstdlibDll, "CreateInterface"));
 		SurfaceCreateInterface		= reinterpret_cast<CreateInterfaceFn>(GetProcAddress(surfaceDll, "CreateInterface"));
 
-		CreateInterface<VGUI>(		"VGUI_Panel009",			panel);
-		CreateInterface<LUASHARED>(	"LUASHARED003",				luaShared);
-		CreateInterface<ENGINE>(	"VEngineClient015",			engineClient);
-		CreateInterface<CLIENT>(	"VClient017",				client);
-		CreateInterface<CLIENT>(	"VClientEntityList003",		entityList);
-		CreateInterface<CLIENT>(	"VClientPrediction001",		prediction);
-		CreateInterface<CLIENT>(	"GameMovement001",			gameMovement);
-		CreateInterface<ENGINE>(	"EngineTraceClient003",		engineTrace);
-		CreateInterface<VStdLib>(	"VEngineCvar007",			cvar);
-		CreateInterface<Surface>(	"VGUI_Surface030",			surface);
+		CreateInterface<ENGINE>("VEngineClient015", engineClient);
+		CreateInterface<ENGINE>("VEngineModel016", modelRender);
+		CreateInterface<ENGINE>("EngineTraceClient003", engineTrace);
+
+		CreateInterface<CLIENT>("VClient017", client);
+		CreateInterface<CLIENT>("VClientEntityList003",	entityList);
+		CreateInterface<CLIENT>("VClientPrediction001",	prediction);
+		CreateInterface<CLIENT>("GameMovement001", gameMovement);
+		
+		CreateInterface<VStdLib>("VEngineCvar007", cvar);
+		CreateInterface<Surface>("VGUI_Surface030",	surface);
+		CreateInterface<VGUI>("VGUI_Panel009", panel);
+		CreateInterface<LUASHARED>("LUASHARED003", luaShared);
 
 		if (client) {
 			std::uintptr_t createMovePtr = vmt::get<std::uintptr_t>(client, 21);
@@ -118,7 +121,6 @@ namespace interfaces {
 		if (clMovePtr) {
 			void* chokedCommandsPtr = getAbsAddr(clMovePtr + 0x10E, 2);
 			clientState = reinterpret_cast<CClientState*>(reinterpret_cast<std::uintptr_t>(chokedCommandsPtr) - offsetof(CClientState, chokedcommands) - 1);
-		
 		}
 
 		std::uintptr_t hudProcessInput = vmt::get<std::uintptr_t>(client, 10);
@@ -126,10 +128,10 @@ namespace interfaces {
 			clientMode = *reinterpret_cast<ClientModeShared**>(getAbsAddr(hudProcessInput));
 		}
 
-		std::uintptr_t CHLClient_Shutdown = vmt::get<std::uintptr_t>(client, 2);
-		if (CHLClient_Shutdown) {
-			view = *reinterpret_cast<CViewRender**>(getAbsAddr(CHLClient_Shutdown + 0xC4));
-		}
+		//std::uintptr_t CHLClient_Shutdown = vmt::get<std::uintptr_t>(client, 2);
+		//if (CHLClient_Shutdown) {
+		//	view = *reinterpret_cast<CViewRender**>(getAbsAddr(CHLClient_Shutdown + 0xC4));
+		//}
 
 
 

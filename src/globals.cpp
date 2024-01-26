@@ -27,6 +27,8 @@ namespace globals {
 	bool	bShouldShift				= false;
 	bool	bShouldRecharge				= false;
 
+	bool	bShouldSlowMo				= false;
+
 	bool	luaInit						= false;
 	bool	runTime						= false;
 

@@ -1,4 +1,3 @@
-
 #pragma once
 
 #define GMOD_USE_SOURCESDK
@@ -6,40 +5,41 @@
 using namespace GarrysMod::Lua;
 
 class IEngineClient;
+class IGameMovement;
+class IMoveHelper;
+class IEngineTrace;
+class IClientEntityList;
+class IPanel;
+class ISurface;
+class CVRenderView;
 class CHLClient;
 class CInput;
 class CClientState;
 class ClientModeShared;
 class CGlobalVars;
-class IClientEntityList;
-class IPanel;
 class CPrediction;
-class IGameMovement;
-class IMoveHelper;
-class IEngineTrace;
 class CLuaShared;
 class CCvar;
-class CViewRender;
-class ISurface;
+class CModelRender;
 
 namespace interfaces {
-	extern IEngineClient* engineClient;
-	extern CHLClient* client;
-	extern CInput* input;
-	extern CClientState* clientState;
-	extern ClientModeShared* clientMode;
-	extern CGlobalVars* globalVars;
-	extern IClientEntityList* entityList;
-	extern IPanel* panel;
-	extern CPrediction* prediction;
-	extern IGameMovement* gameMovement;
-	extern IMoveHelper* moveHelper;
-	extern IEngineTrace* engineTrace;
-	extern CLuaShared* luaShared;
-	extern ILuaBase* clientLua;
-	extern CCvar* cvar;
-	extern CViewRender* view;
-	extern ISurface* surface;
+	extern IEngineClient*		engineClient;
+	extern CModelRender*		modelRender;
+	extern IClientEntityList*	entityList;
+	extern CHLClient*			client;
+	extern CInput*				input;
+	extern CClientState*		clientState;
+	extern ClientModeShared*	clientMode;
+	extern CGlobalVars*			globalVars;
+	extern CLuaShared*			luaShared;
+	extern ILuaBase*			clientLua;
+	extern IPanel*				panel;
+	extern CPrediction*			prediction;
+	extern IGameMovement*		gameMovement;
+	extern IMoveHelper*			moveHelper;
+	extern IEngineTrace*		engineTrace;
+	extern CCvar*				cvar;
+	extern ISurface*			surface;
 
 	void init();
 }
